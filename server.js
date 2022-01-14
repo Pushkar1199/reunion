@@ -51,7 +51,7 @@ const db = knex({
 //     })
 
 
-app.post('/regis', register(req,res,db,bcrypt));
+app.post('/regis', (req,res) => {register(req,res,db,bcrypt)});
 app.get('/posts', authenticateToken, (req, res) => {
 
     //console.log(req.user);
