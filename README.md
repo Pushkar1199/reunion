@@ -5,13 +5,14 @@ Build APIs for a social media platform in either NodeJS. The API should support 
 Working of backend
 Your can use POSTMAN to check the working, API Endpoints are given below
 baseurl : https://api-pg-reunion.herokuapp.com/ <br/>
-Dummy Users
+Registerd Users
 
 | Email  | Password |
 | ------------- | ------------- |
-| demo@gmail.com |  demopassword |
-| demo2@gmail.com | demopassword  |
-| demo3@gmail.com|demopassword|
+| kyle@gmail.com |  kyle123 |
+| tim@gmail.com | tim123  |
+| ed@gmail.com|edward|
+|
 API Endpoints
 
 POST /api/authenticate should perform user authentication and return a JWT token.<br/>
