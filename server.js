@@ -28,13 +28,19 @@ const posts = [
 app.use(bodyParser.json());
 const db = knex({
     client: 'pg',
-    connection: {
-        host: '127.0.0.1',
-        port: 5432,
-        user: 'postgres',
-        password: 'root',
-        database: 'reunion'
+    // connection: {
+    //     host: '127.0.0.1',
+    //     port: 5432,
+    //     user: 'postgres',
+    //     password: 'root',
+    //     database: 'reunion'
 
+    // }
+    connection: {
+        connectionString: process.env.DATABASE_URL,
+        ssl: {
+            rejectUnauthorized: false
+        }
     }
 });
 
@@ -464,7 +470,11 @@ app.get('/api/all_posts', authenticateToken, (req, res) => {
 
 
 })
+app.get('/',(req,res) => {
+    res.json("there there")
+})
 
 
-
-app.listen(3000);
+app.listen(process.env.PORT || 3000,() => {
+    console.log(`app is running at port ${process.env.PORT}`);
+})
