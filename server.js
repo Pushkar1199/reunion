@@ -235,77 +235,236 @@ app.post('/api/unfollow/:id', authenticateToken, (req, res) => {
 })
 
 //4
-app.get('/api/user',authenticateToken,(req,res) => {
-    db.select('name','followers','following')
-    .from('users')
-    .where('id','=',req.user.id)
-    .where('email','=',req.user.email)
-    .returning('*')
-    .then(data => {
-        res.json(data)
-    })
-    .catch(err =>  console.log(err))
+app.get('/api/user', authenticateToken, (req, res) => {
+    db.select('name', 'followers', 'following')
+        .from('users')
+        .where('id', '=', req.user.id)
+        .where('email', '=', req.user.email)
+        .returning('*')
+        .then(data => {
+            res.json(data)
+        })
+        .catch(err => console.log(err))
 })
 
 //5
-app.post('/api/posts/',authenticateToken,(req,res) => {
-    const { Title , Description } = req.body;
-    const {id , email} = req.user;
+app.post('/api/posts/', authenticateToken, (req, res) => {
+    const { Title, Description } = req.body;
+    const { id, email } = req.user;
     db.transaction(trx => {
         trx.insert({
-            email : email,
-            post_title : Title,
+            email: email,
+            post_title: Title,
             descrp: Description,
             created_on: new Date().toISOString(),
-            user_id:id
+            user_id: id
         })
-        .into('posts')
-        .returning('*')
-        .then(data => {
-            console.log(data);
-            const User = {
-                Post_id :data[0].id,
-                Title:data[0].post_title,
-                Descripion: data[0].descrp,
-                Created_Time:data[0].created_on
-            }
-            res.json(User)
-        })
-        .then(trx.commit)
-        .catch(trx.rollback)
+            .into('posts')
+            .returning('*')
+            .then(data => {
+                console.log(data);
+                const User = {
+                    Post_id: data[0].id,
+                    Title: data[0].post_title,
+                    Descripion: data[0].descrp,
+                    Created_Time: data[0].created_on
+                }
+                res.json(User)
+            })
+            .then(trx.commit)
+            .catch(trx.rollback)
     })
-    .catch(err => console.log(err))
+        .catch(err => console.log(err))
 
 
 })
 
 //6
 
-app.delete('/api/posts/:id',authenticateToken,(req,res) => {
-    const {id} = req.params;
-    console.log("idparam",id);
+app.delete('/api/posts/:id', authenticateToken, (req, res) => {
+    const { id } = req.params;
+    //console.log("idparam",id);
     db.select('id')
-    .from('posts')
-    .where('user_id',"=",req.user.id)
-    .where('id','=',id)
-    .returning('id')
-    .then(data => {
-        console.log(data.length)
-        if(!data.length){
-            res.json("not found")
-        }
-    })
-    .catch(err => {console.log(err)})
+        .from('posts')
+        .where('user_id', "=", req.user.id)
+        .where('id', '=', id)
+        .returning('id')
+        .then(data => {
+            //console.log(data.length)
+            if (!data.length) {
+                res.json("not found")
+            }
+        })
+        .catch(err => { console.log(err) })
 
     db.transaction(trx => {
         trx.del()
-        .from('posts')
-        .where('id','=',id)
-        .then(res.sendStatus(200))
-        .then(trx.commit)
-        .catch(trx.rollback)
+            .from('posts')
+            .where('id', '=', id)
+            .then(res.sendStatus(200))
+            .then(trx.commit)
+            .catch(trx.rollback)
     })
-    .catch(err => console.log(err))
+        .catch(err => console.log(err))
 })
+
+
+//7
+app.post('/api/like/:id', authenticateToken, (req, res) => {
+    //res.json("hello there");
+    const { id } = req.params;
+    //console.log(id)
+
+    db('posts').where('id', '=', id)
+        .increment('likes', 1)
+        .then(res.sendStatus(200))
+        .catch(err => res.status(400).json(err))
+})
+
+//8
+
+app.post('/api/unlike/:id', authenticateToken, (req, res) => {
+    const { id } = req.params;
+    db('posts').where('id', '=', id)
+        .increment('dislikes', 1)
+        .returning('dislikes')
+        .then(data => {
+            // const out = data[0];
+            console.log(data);
+            res.sendStatus(200)
+        })
+        .catch(err => res.status(400).json(err))
+})
+
+//9
+app.post('/api/comment/:id', authenticateToken, (req, res) => {
+    const id = req.params.id;
+    const comment = req.body.comment;
+    db.select('id')
+        .from('posts')
+        .where('id', '=', id)
+        .returning('id')
+        .then(ids => {
+            //console.log(ids.length);
+            if (!ids.length) {
+                res.json("no post found")
+            }
+            else {
+
+                db('comments')
+                    .insert({
+                        post_id: id,
+                        comment: comment,
+                        comment_on: new Date().toISOString()
+                    })
+                    .returning('id')
+                    .then(data => {
+                        const v = {
+                            Comment_Id: data[0]
+                        }
+                        res.json(v);
+                    })
+                    .catch(err => res.json(err))
+            }
+        })
+        .catch(err => res.status(400).json(err))
+
+})
+
+//10
+
+app.get('/api/posts/:id', authenticateToken, (req, res) => {
+    const id = req.params.id;
+    let temp = {
+        title: '',
+        description: '',
+        likes: 0,
+        comments: 0
+    }
+    db('posts').select('likes').where('id', '=', id)
+        .returning('*')
+        .then(data => {
+            temp['likes'] = data[0].likes;
+            // console.log(temp);
+        })
+    db('comments').count('id')
+        .where('post_id', '=', id)
+        .returning('*')
+        .then(data => {
+            //console.log(data)
+            temp['comments'] = parseInt(data[0].count)
+        })
+    db('posts').select('post_title', 'descrp')
+        .where('id', '=', id)
+        .returning('*')
+        .then(data => {
+            temp['title'] = data[0].post_title;
+            temp['description'] = data[0].descrp;
+            console.log(temp);
+            res.json(temp)
+        })
+
+
+})
+//11
+app.get('/api/all_posts', authenticateToken, (req, res) => {
+    
+    const user_id = req.user.id
+    let postIds = []
+    db('posts').select('id').where('user_id', '=', user_id)
+        .orderBy('created_on')
+        .returning('id')
+        .then(data => {
+            //console.log(data);
+            for (let i = 0; i < data.length; i++) {
+                postIds.push(data[i].id);
+            }
+           // console.log(postIds);
+            return postIds;
+        })
+        .then(() => {
+            let result = [];
+            console.log(postIds)
+            for (let i = 0; i < postIds.length; i++) {
+                db('posts').select('id', 'post_title', 'descrp', 'created_on', 'likes')
+                    .where('id', '=', postIds[i])
+                    .returning('*')
+                    .then(data => {
+                        const temp = {}
+                        temp['id'] = data[0].id;
+                        temp['Title'] = data[0].post_title;
+                        temp['desc'] = data[0].descrp;
+                        temp['created_at'] = data[0].created_on;
+                        temp['likes'] = data[0].likes;
+                        temp['comments'] = []
+                        return temp
+
+                    })
+                    .then(temp => {
+                        //console.log(temp)
+                        return temp;
+                    })
+                    .then(temp => {
+                        db('comments').select('comment')
+                            .where('post_id', '=', postIds[i])
+                            .returning('*')
+                            .then(data => {
+                                for (let i = 0; i < data.length; i++) {
+                                    temp['comments'].push(data[i].comment);
+                                }
+                                console.log(temp)
+                                result.push(temp)
+                                if(i === postIds.length-1)
+                                    // console.log(result)
+                                    res.json(result)
+                            })
+                    })
+            }
+        })
+
+
+})
+
+
 
 app.listen(3000);
