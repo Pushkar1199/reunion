@@ -64,7 +64,7 @@ app.post('/regis', (req, res) => {
                     .insert({
                         name: name,
                         email: loginEmail[0],
-                        joined: new Date()
+                        joined: new Date().toISOString()
 
                     })
                     .then(user => {
@@ -235,7 +235,77 @@ app.post('/api/unfollow/:id', authenticateToken, (req, res) => {
 })
 
 //4
+app.get('/api/user',authenticateToken,(req,res) => {
+    db.select('name','followers','following')
+    .from('users')
+    .where('id','=',req.user.id)
+    .where('email','=',req.user.email)
+    .returning('*')
+    .then(data => {
+        res.json(data)
+    })
+    .catch(err =>  console.log(err))
+})
+
+//5
+app.post('/api/posts/',authenticateToken,(req,res) => {
+    const { Title , Description } = req.body;
+    const {id , email} = req.user;
+    db.transaction(trx => {
+        trx.insert({
+            email : email,
+            post_title : Title,
+            descrp: Description,
+            created_on: new Date().toISOString(),
+            user_id:id
+        })
+        .into('posts')
+        .returning('*')
+        .then(data => {
+            console.log(data);
+            const User = {
+                Post_id :data[0].id,
+                Title:data[0].post_title,
+                Descripion: data[0].descrp,
+                Created_Time:data[0].created_on
+            }
+            res.json(User)
+        })
+        .then(trx.commit)
+        .catch(trx.rollback)
+    })
+    .catch(err => console.log(err))
 
 
+})
+
+//6
+
+app.delete('/api/posts/:id',authenticateToken,(req,res) => {
+    const {id} = req.params;
+    console.log("idparam",id);
+    db.select('id')
+    .from('posts')
+    .where('user_id',"=",req.user.id)
+    .where('id','=',id)
+    .returning('id')
+    .then(data => {
+        console.log(data.length)
+        if(!data.length){
+            res.json("not found")
+        }
+    })
+    .catch(err => {console.log(err)})
+
+    db.transaction(trx => {
+        trx.del()
+        .from('posts')
+        .where('id','=',id)
+        .then(res.sendStatus(200))
+        .then(trx.commit)
+        .catch(trx.rollback)
+    })
+    .catch(err => console.log(err))
+})
 
 app.listen(3000);
