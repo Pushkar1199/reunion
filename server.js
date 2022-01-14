@@ -471,11 +471,8 @@ app.get('/api/all_posts', authenticateToken, (req, res) => {
 
 
 })
-app.get('/',(req,res) => {
-    res.send(<h1>
-        Please Go Through Readme File 
-        <a href ="https://api-pg-reunion.herokuapp.com/">Readme</a>
-    </h1>)
+app.get('/',(_,res) => {
+    res.sendFile(__dirname + "/home.html");
 })
 
 
