@@ -9,6 +9,7 @@ const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken');
 const { sendStatus } = require('express/lib/response');
 app.use(express.json());
+app.use(cors());
 const posts = [
     {
         id: 1,
