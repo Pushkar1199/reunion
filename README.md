@@ -1,4 +1,4 @@
-##reunion social-media-API's using NODEJS, EXPRESS, POSTGRESQL
+## reunion social-media-API's using NODEJS, EXPRESS, POSTGRESQL
 Problem Statement
 Build APIs for a social media platform in either NodeJS. The API should support features like getting a user profile, follow a user, upload a post, delete a post, like a post, unlike a liked post, and comment on a post. Design the database schema and implement in PostgreSQL.
 
