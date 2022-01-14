@@ -34,5 +34,5 @@ const register = (req, res, db, bcrypt) => {
 
 }
 module.exports = ({
-    register
+    register : register
 })

@@ -8,7 +8,7 @@ const knex = require('knex');
 const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken');
 const { sendStatus } = require('express/lib/response');
-const register = require('./controllers/register.js')
+const reg = require('./controllers/register.js')
 app.use(express.json());
 app.use(cors());
 const posts = [
@@ -51,7 +51,7 @@ const db = knex({
 //     })
 
 
-app.post('/regis', (req,res) => {register(req,res,db,bcrypt)});
+app.post('/regis', (req,res) => {reg.register(req,res,db,bcrypt)});
 app.get('/posts', authenticateToken, (req, res) => {
 
     //console.log(req.user);
