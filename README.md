@@ -12,7 +12,7 @@ Registerd Users
 | kyle@gmail.com |  kyle123 |
 | tim@gmail.com | tim123  |
 | ed@gmail.com|edward|
-|
+|ross@gmail.com|ross|
 API Endpoints
 
 POST /api/authenticate should perform user authentication and return a JWT token.<br/>
