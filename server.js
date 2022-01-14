@@ -8,6 +8,7 @@ const knex = require('knex');
 const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken');
 const { sendStatus } = require('express/lib/response');
+const register = require('./controllers/register.js')
 app.use(express.json());
 app.use(cors());
 const posts = [
@@ -50,41 +51,7 @@ const db = knex({
 //     })
 
 
-app.post('/regis', (req, res) => {
-
-    const { email, name, password } = req.body;
-    const hash = bcrypt.hashSync(password);
-    if (!email || !name || !password) {
-        return res.status(400).json("incorrect form submission");
-    }
-
-    db.transaction(trx => {
-        trx.insert({
-            hash: hash,
-            email: email
-        })
-            .into('login')
-            .returning('email')
-            .then(loginEmail => {
-                return trx('users')
-                    .returning('email')
-                    .insert({
-                        name: name,
-                        email: loginEmail[0],
-                        joined: new Date().toISOString()
-
-                    })
-                    .then(user => {
-                        res.json(user[0]);//database.users[database.users.length - 1 ]
-                    })
-
-            })
-            .then(trx.commit)
-            .catch(trx.rollback)
-    })
-        .catch(err => res.status(400).json('unable to register'))
-
-})
+app.post('/regis', register(req,res,db,bcrypt));
 app.get('/posts', authenticateToken, (req, res) => {
 
     //console.log(req.user);
