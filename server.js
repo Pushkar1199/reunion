@@ -51,7 +51,7 @@ const db = knex({
 //     })
 
 
-app.post('/regis', (req,res) => {reg.register(req,res,db,bcrypt)});
+app.post('/regis', (req, res) => { reg.register(req, res, db, bcrypt) });
 app.get('/posts', authenticateToken, (req, res) => {
 
     //console.log(req.user);
@@ -97,7 +97,7 @@ app.post('/api/authenticate', (req, res) => {
                         const username = data[0].name;
                         const email = data[0].email;
                         const id = data[0].id;
-                        console.log(username,email);
+                        console.log(username, email);
                         const user = {
                             name: username,
                             email: email,
@@ -107,10 +107,10 @@ app.post('/api/authenticate', (req, res) => {
                         //console.log(accessToken);
                         res.json(accessToken);
                     })
-                    .catch(err => 
-                        { console.log(err);
-                            res.status(400).json("unable to get user")
-                        });
+                    .catch(err => {
+                        console.log(err);
+                        res.status(400).json("unable to get user")
+                    });
             }
             else {
                 res.status(400).json("wrong credentialsss")
@@ -124,40 +124,51 @@ app.post('/api/follow/:id', authenticateToken, (req, res) => {
 
     const id = req.params.id;
     const follower_id = req.user.id;
-    db.select('*').from('user_followers')
-        .where('user_id', '=', id)
-        .where('follower_id', '=', follower_id)
-        .returning("*")
+    db('users').select('email')
+        .where('id', '=', id)
+        .returning('email')
         .then(data => {
-            return data.length
-        })
-        .then(len => {
-            if (len) {
-                res.json("already followed")
-            }
-            else {
-                db.transaction(trx => {
-                    trx.insert({
-                        user_id: id,
-                        follower_id: follower_id
+            if (data.length) {
+                db.select('*').from('user_followers')
+                    .where('user_id', '=', id)
+                    .where('follower_id', '=', follower_id)
+                    .returning("*")
+                    .then(data => {
+                        return data.length
                     })
-                        .into('user_followers')
-                        .then(trx.commit)
-                        .catch(trx.rollback)
-                })
-                    .catch(err => res.status(400).json("unable to follow"))
-                db('users').where('id', '=', follower_id)
-                    .increment('following', 1)
-                    .catch(err => sendStatus(400))
+                    .then(len => {
+                        if (len) {
+                            res.json("already followed")
+                        }
+                        else {
+                            db.transaction(trx => {
+                                trx.insert({
+                                    user_id: id,
+                                    follower_id: follower_id
+                                })
+                                    .into('user_followers')
+                                    .then(trx.commit)
+                                    .catch(trx.rollback)
+                            })
+                                .catch(err => res.status(400).json("unable to follow"))
+                            db('users').where('id', '=', follower_id)
+                                .increment('following', 1)
+                                .catch(err => sendStatus(400))
 
-                db('users').where('id', '=', id)
-                    .increment('followers', 1)
-                    .then(res.sendStatus(200))
-                    .catch(err => res.sendStatus(400))
+                            db('users').where('id', '=', id)
+                                .increment('followers', 1)
+                                .then(res.sendStatus(200))
+                                .catch(err => res.sendStatus(400))
+                        }
+                    })
+                    .catch(err => res.status(400).json(err))
+            }
+            else
+            {
+                res.json("No user found");
             }
         })
-        .catch(err => res.status(400).json(err))
-
+        .catch( console.log(err))
 
 
     // async function getuser(){
@@ -388,7 +399,7 @@ app.get('/api/posts/:id', authenticateToken, (req, res) => {
 })
 //11
 app.get('/api/all_posts', authenticateToken, (req, res) => {
-    
+
     const user_id = req.user.id
     let postIds = []
     db('posts').select('id').where('user_id', '=', user_id)
@@ -399,7 +410,7 @@ app.get('/api/all_posts', authenticateToken, (req, res) => {
             for (let i = 0; i < data.length; i++) {
                 postIds.push(data[i].id);
             }
-           // console.log(postIds);
+            // console.log(postIds);
             return postIds;
         })
         .then(() => {
@@ -434,7 +445,7 @@ app.get('/api/all_posts', authenticateToken, (req, res) => {
                                 }
                                 console.log(temp)
                                 result.push(temp)
-                                if(i === postIds.length-1)
+                                if (i === postIds.length - 1)
                                     // console.log(result)
                                     res.json(result)
                             })
@@ -444,11 +455,11 @@ app.get('/api/all_posts', authenticateToken, (req, res) => {
 
 
 })
-app.get('/',(_,res) => {
+app.get('/', (_, res) => {
     res.sendFile(__dirname + "/home.html");
 })
 
 
-app.listen(process.env.PORT || 3000,() => {
+app.listen(process.env.PORT || 3000, () => {
     console.log(`app is running at port ${process.env.PORT}`);
 })
