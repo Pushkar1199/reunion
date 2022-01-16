@@ -124,6 +124,10 @@ app.post('/api/follow/:id', authenticateToken, (req, res) => {
 
     const id = req.params.id;
     const follower_id = req.user.id;
+    if(id == follower_id)
+    {
+        res.json("Incorrect user data");
+    }
     db('users').select('email')
         .where('id', '=', id)
         .returning('email')
