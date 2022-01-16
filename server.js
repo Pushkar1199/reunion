@@ -107,7 +107,10 @@ app.post('/api/authenticate', (req, res) => {
                         console.log(accessToken);
                         res.json(accessToken);
                     })
-                    .catch(err => res.status(400).json("unable to get user"));
+                    .catch(err => 
+                        { console.log(err);
+                            res.status(400).json("unable to get user")
+                        });
             }
             else {
                 res.status(400).json("wrong credentialsss")
