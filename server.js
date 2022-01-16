@@ -85,6 +85,7 @@ app.post('/api/authenticate', (req, res) => {
     }
     db.select('email', 'hash').from('login')
         .where('email', '=', email)
+        .returning('*')
         .then(data => {
             const isValid = bcrypt.compareSync(password, data[0].hash);
             if (isValid) {
