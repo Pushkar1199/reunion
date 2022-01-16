@@ -104,6 +104,7 @@ app.post('/api/authenticate', (req, res) => {
                             id: id
                         };
                         const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET);
+                        console.log(accessToken);
                         res.json(accessToken);
                     })
                     .catch(err => res.status(400).json("unable to get user"));
