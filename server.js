@@ -91,6 +91,7 @@ app.post('/api/authenticate', (req, res) => {
             if (isValid) {
                 return db.select('*').from('users')
                     .where('email', '=', email)
+                    .returning('*')
                     .then(data => {
                         //res.json(user[0]);
                         const username = data[0].name;
