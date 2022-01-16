@@ -97,7 +97,7 @@ app.post('/api/authenticate', (req, res) => {
                         const username = data[0].name;
                         const email = data[0].email;
                         const id = data[0].id;
-                        //console.log(username,email);
+                        console.log(username,email);
                         const user = {
                             name: username,
                             email: email,
