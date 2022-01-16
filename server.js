@@ -168,7 +168,7 @@ app.post('/api/follow/:id', authenticateToken, (req, res) => {
                 res.json("No user found");
             }
         })
-        .catch( console.log(err))
+        .catch( err => console.log(err))
 
 
     // async function getuser(){
